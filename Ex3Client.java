@@ -12,10 +12,11 @@ public class Ex3Client {
 	 * main method handles simple I/O as well as sending the final checksum back to the server
 	 */
 	public static void main(String[] args) throws Exception{
-		try(Socket socket = new Socket("codebank.xyz", 38103)){
+		try(Socket socket = new Socket("codebank.xyz", 38103)) {
+			System.out.println("Connected to server.");
 			InputStream in = socket.getInputStream();
 			int size = in.read();
-			System.out.println(size);
+			System.out.println("Reading " + size + " bytes.");
 			
 			byte[] received = receiveBytes(socket, size);
 			short crc = checkSum(received);
@@ -25,7 +26,8 @@ public class Ex3Client {
 	         asArray[0] = (byte)((crc & 0xFF00) >>> 8);
 	         asArray[1] = (byte)((crc & 0x00FF));
 	         os.write(asArray);
-	         System.out.println(in.read());
+	         String response = (in.read() == 1) ? "Response good." : "Bad Response.";
+	         System.out.println(response);
 			
 		}
 	}
@@ -34,15 +36,40 @@ public class Ex3Client {
 	 * this method just recieves the bytes from the server
 	 */
 	private static byte[] receiveBytes(Socket socket, int size) throws Exception{
+		System.out.println("Data received: ");
 		InputStream in = socket.getInputStream();
 		byte[] received = new byte[size];
 		
+		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < size; i++){
-			received[i] = (byte)in.read();
+					
+			int byteRead = in.read();
+			sb.append(Integer.toHexString(byteRead).toUpperCase());
+			received[i] = (byte)byteRead;
+	
 		}
+		printAsHex(sb.toString());
+		System.out.println();
 		
 		return received;
 	}
+	
+	public static void printAsHex(String hexString) {
+		
+		int count = 0;
+		System.out.print("   ");
+		for(int i = 0; i < hexString.length(); ++i) {
+			
+			if(count == 20) {
+				System.out.println();
+				System.out.print("   ");count = 0;
+			}
+			
+			System.out.print(hexString.charAt(i));
+			++count;
+		}
+	}
+	
 	
 	/*
 	 * this method uses the checksum algorithm to generate a check sum.
