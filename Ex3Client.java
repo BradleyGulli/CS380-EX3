@@ -1,9 +1,16 @@
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.util.*;
 import java.io.*;
+
+/*
+ * Authors: Bradley Gulli & Brian Sandoval
+ * 
+ * This program generates a checksum value from data sent from a server
+ */
 public class Ex3Client {
 	
+	/*
+	 * main method handles simple I/O as well as sending the final checksum back to the server
+	 */
 	public static void main(String[] args) throws Exception{
 		try(Socket socket = new Socket("codebank.xyz", 38103)){
 			InputStream in = socket.getInputStream();
@@ -23,6 +30,9 @@ public class Ex3Client {
 		}
 	}
 	
+	/*
+	 * this method just recieves the bytes from the server
+	 */
 	private static byte[] receiveBytes(Socket socket, int size) throws Exception{
 		InputStream in = socket.getInputStream();
 		byte[] received = new byte[size];
@@ -34,6 +44,9 @@ public class Ex3Client {
 		return received;
 	}
 	
+	/*
+	 * this method uses the checksum algorithm to generate a check sum.
+	 */
 	public static short checkSum(byte[] b){
 		long sum = 0;
 		int length = b.length;
@@ -43,20 +56,23 @@ public class Ex3Client {
 		long value;
 		
 		while(length > 1){
+			//gets the two halves of the whole byte and adds to the sum
 			highVal = ((b[i] << 8) & 0xFF00); 
 			lowVal = ((b[i + 1]) & 0x00FF);
 			value = highVal | lowVal;
 		    sum += value;
 		    
+		    //check for the overflow
 		    if ((sum & 0xFFFF0000) > 0) {
 		        sum = sum & 0xFFFF;
 		        sum += 1;
 		      }
 
+		      //iterates
 		      i += 2;
 		      length -= 2;
 		}
-		
+		//leftover bits
 		if(length > 0){
 			sum += (b[i] << 8 & 0xFF00);
 		      if ((sum & 0xFFFF0000) > 0) {
@@ -64,6 +80,7 @@ public class Ex3Client {
 		        sum += 1;
 		      }
 		}
+		
 		sum = ~sum;
 		sum = sum & 0xFFFF;
 		return (short)sum;
